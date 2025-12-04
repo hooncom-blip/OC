@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Prompt Architect - AI Designer Portfolio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#050505',
+                        neon: '#00ffaa',
+                        'neon-dim': 'rgba(0, 255, 170, 0.1)',
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        'glass-strong': 'rgba(20, 20, 20, 0.8)',
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(0, 255, 170, 0.5), 0 0 20px rgba(0, 255, 170, 0.3)',
+                        'neon-strong': '0 0 20px rgba(0, 255, 170, 0.8), 0 0 40px rgba(0, 255, 170, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ffaa; 
+        }
+
+        /* Utility Classes */
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-text {
+            color: #00ffaa;
+            text-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+        }
+
+        /* Enhanced Typing Cursor - Block Style */
+        .typing-cursor::after {
+            content: '▋';
+            color: #00ffaa;
+            margin-left: 4px;
+            animation: blink 1s step-end infinite;
+            vertical-align: baseline;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Smooth transition for background image */
+        #bg-image-layer {
+            transition: opacity 0.8s ease-in-out, background-image 0.8s ease-in-out;
+            will-change: opacity, background-image;
+        }
+
+        /* Corners for Image Hover Effect */
+        .corner-border {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #00ffaa;
+            border-style: solid;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+        .group:hover .corner-border { opacity: 1; }
+        .c-tl { top: 20px; left: 20px; border-width: 2px 0 0 2px; }
+        .c-tr { top: 20px; right: 20px; border-width: 2px 2px 0 0; }
+        .c-bl { bottom: 20px; left: 20px; border-width: 0 0 2px 2px; }
+        .c-br { bottom: 20px; right: 20px; border-width: 0 2px 2px 0; }
+
+        .group:hover .c-tl { top: 10px; left: 10px; }
+        .group:hover .c-tr { top: 10px; right: 10px; }
+        .group:hover .c-bl { bottom: 10px; left: 10px; }
+        .group:hover .c-br { bottom: 10px; right: 10px; }
+
+    </style>
+</head>
+<body class="antialiased selection:bg-neon selection:text-black">
+
+    <!-- Background Layers (Fixed) -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <!-- Dynamic Background Image: Scale increased to 150% for immersive effect -->
+        <div id="bg-image-layer" class="absolute inset-0 bg-cover bg-center opacity-30 scale-150 blur-2xl"></div>
+        <div class="absolute inset-0 bg-black/80"></div>
+        <!-- Neural Network Canvas -->
+        <canvas id="neural-canvas" class="absolute inset-0 w-full h-full mix-blend-screen opacity-50"></canvas>
+    </div>
+
+    <!-- Navigation / Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 p-6 flex justify-between items-center mix-blend-difference pointer-events-none">
+        <div class="text-xl font-bold font-mono tracking-tighter pointer-events-auto">
+            <span class="text-neon">&lt;</span>The Prompt Architect<span class="text-neon">/&gt;</span>
+        </div>
+        <div class="text-sm font-mono text-gray-400 hidden sm:block">
+            Exploring the Boundary between Code and Aesthetics
+        </div>
+    </header>
+
+    <!-- Main Content Wrapper -->
+    <main class="relative z-10 w-full">
+        
+        <!-- Section 1: Intro (Terminal Style) -->
+        <section id="intro-section" class="h-screen flex flex-col justify-center items-center w-full relative">
+            <div class="glass-panel p-8 rounded-lg w-full max-w-2xl border-l-4 border-neon shadow-neon mb-12 mx-4">
+                <div class="font-mono text-sm text-gray-400 mb-2">user@portfolio:~$ <span class="text-neon">init_sequence.sh</span></div>
+                <h1 id="typewriter" class="text-2xl md:text-4xl font-bold font-mono leading-relaxed mb-4 min-h-[120px] typing-cursor text-white">
+                    <!-- Text will be typed here by JS -->
+                </h1>
+                <p class="text-gray-400 mt-4 opacity-0 transition-opacity duration-1000" id="intro-sub">
+                    Generative Process is the New Craftsmanship.
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer" onclick="scrollToGallery()">
+                <i data-lucide="chevron-down" class="w-8 h-8 text-neon"></i>
+            </div>
+        </section>
+
+        <!-- Section 2: Gallery Spacer (Scroll Track) -->
+        <!-- Height is calculated: 100vh per project + buffer -->
+        <div id="gallery-track" class="relative w-full" style="height: 400vh;">
+            
+            <!-- Sticky Container (The Viewport) -->
+            <div id="gallery-sticky" class="sticky top-0 w-full h-screen flex flex-col justify-center items-center overflow-hidden opacity-0 transition-opacity duration-1000">
+                
+                <!-- Central Layout Grid -->
+                <div class="relative w-full max-w-7xl h-full flex items-center justify-between px-4 md:px-12">
+                    
+                    <!-- Left: Text Info -->
+                    <div class="w-1/4 h-full flex flex-col justify-center items-start z-20 pointer-events-none">
+                        <div id="text-left-container" class="space-y-32 transition-transform duration-500 ease-out">
+                            <!-- Left text items injected here -->
+                        </div>
+                    </div>
+
+                    <!-- Center: Image Viewport (Mask) -->
+                    <div class="relative w-full md:w-[500px] aspect-square flex-shrink-0 z-30 group cursor-pointer" onclick="openCurrentModal()">
+                        <!-- Frame/Border Decoration -->
+                        <div class="absolute inset-0 border border-white/10 rounded-lg z-20 pointer-events-none group-hover:border-white/30 transition-colors"></div>
+                        
+                        <!-- Hover Corners -->
+                        <div class="corner-border c-tl"></div>
+                        <div class="corner-border c-tr"></div>
+                        <div class="corner-border c-bl"></div>
+                        <div class="corner-border c-br"></div>
+                        
+                        <!-- Center Label on Hover -->
+                        <div class="absolute inset-0 flex items-center justify-center z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <span class="font-mono text-neon text-sm bg-black/80 px-4 py-2 rounded border border-neon backdrop-blur-sm tracking-widest">
+                                [ View Exhibit ↗ ]
+                            </span>
+                        </div>
+
+                        <!-- Image Strip Container (Slides Up) -->
+                        <div id="image-strip" class="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden bg-black">
+                            <!-- Images injected here -->
+                        </div>
+                    </div>
+
+                    <!-- Right: Title & Details -->
+                    <div class="w-1/4 h-full flex flex-col justify-center items-end z-20 pointer-events-none text-right">
+                        <div id="text-right-container" class="space-y-32 transition-transform duration-500 ease-out">
+                            <!-- Right text items injected here -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Progress Bar/Indicator -->
+                <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+                    <div id="indicators" class="flex gap-2"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="h-screen flex items-center justify-center bg-black z-20 relative border-t border-white/10">
+            <div class="text-center">
+                <h2 class="text-4xl font-bold mb-4">Let's Co-create</h2>
+                <p class="text-gray-400 mb-8">Ready to design the future?</p>
+                <a href="mailto:contact@promptarchitect.ai" class="text-neon font-mono text-lg hover:underline decoration-neon underline-offset-4">contact@promptarchitect.ai</a>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- Project Detail Modal (Same as before) -->
+    <div id="modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-md opacity-0 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-5xl h-[90vh] rounded-xl flex flex-col overflow-hidden relative transform scale-95 transition-transform duration-300" id="modal-content">
+            <button onclick="closeModal()" class="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-full hover:bg-neon hover:text-black transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="flex flex-col md:flex-row h-full overflow-y-auto md:overflow-hidden">
+                <div class="w-full md:w-3/5 h-[50vh] md:h-full bg-black relative flex items-center justify-center p-4">
+                    <img id="modal-img" src="" alt="Project Image" class="max-h-full max-w-full object-contain rounded-md shadow-neon">
+                </div>
+                <div class="w-full md:w-2/5 p-8 flex flex-col h-full overflow-y-auto border-l border-white/10 bg-black/40">
+                    <div class="mb-6"><span class="text-neon font-mono text-sm border border-neon px-2 py-1 rounded">Project Detail</span></div>
+                    <h2 id="modal-title" class="text-3xl font-bold mb-2"></h2>
+                    <p id="modal-desc" class="text-gray-300 mb-8 leading-relaxed"></p>
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-sm font-mono text-gray-500 mb-2 uppercase tracking-widest">Tools & Workflow</h3>
+                            <div id="modal-tools" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-mono text-gray-500 mb-2 uppercase tracking-widest flex items-center gap-2"><i data-lucide="terminal" class="w-4 h-4"></i> Core Prompts</h3>
+                            <div class="bg-black/80 p-4 rounded border border-white/10 font-mono text-xs text-neon/90 leading-relaxed overflow-x-auto"><code id="modal-prompts"></code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Data Structure (Updated with Public Domain Masterpieces) ---
+        const portfolioData = [
+            {
+                id: 1,
+                title: "Starry Night Redux",
+                subtitle: "Neural Style Transfer",
+                description: "빈센트 반 고흐의 '별이 빛나는 밤'을 인공 신경망으로 재해석한 프로젝트입니다. 붓터치의 질감을 데이터화하여 현대적인 모션 그래픽으로 변환했습니다.",
+                // Public Domain Image: Starry Night by Vincent van Gogh
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+                tools: ["Midjourney", "Runway Gen-2", "After Effects"],
+                prompts: ["/imagine prompt: Van Gogh's Starry Night in cyberpunk city style...", "Camera movement: Swirling sky animation"]
+            },
+            {
+                id: 2,
+                title: "The Great Wave",
+                subtitle: "Fluid Particle Sim",
+                description: "호쿠사이의 '가나가와 해변의 높은 파도'를 물리 기반 파티클 시뮬레이션으로 구현했습니다. 정적인 판화를 동적인 인터랙티브 아트로 확장한 실험작입니다.",
+                // Public Domain Image: The Great Wave off Kanagawa by Hokusai
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/1280px-Tsunami_by_hokusai_19th_century.jpg",
+                tools: ["Three.js", "WebGL", "Physics Shader"],
+                prompts: ["Generate a fluid simulation matching Hokusai wave dynamics...", "Apply foam texture shader..."]
+            },
+            {
+                id: 3,
+                title: "Composition VIII",
+                subtitle: "Generative Audio-Visual",
+                description: "바실리 칸딘스키의 '구성 8'에서 영감을 받은 제너레이티브 사운드 비주얼라이제이션입니다. 도형의 배치와 색상을 알고리즘으로 분석하여 소리로 변환했습니다.",
+                // Public Domain Image: Composition VIII by Wassily Kandinsky
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Vassily_Kandinsky%2C_1923_-_Composition_8.jpg/1280px-Vassily_Kandinsky%2C_1923_-_Composition_8.jpg",
+                tools: ["Stable Diffusion", "TouchDesigner", "Ableton Live"],
+                prompts: ["Analyze geometric patterns and map to frequency...", "Generate abstract geometric structures..."]
+            }
+        ];
+
+        // --- 2. Initialize Gallery DOM ---
+        function initGallery() {
+            const imageStrip = document.getElementById('image-strip');
+            const leftContainer = document.getElementById('text-left-container');
+            const rightContainer = document.getElementById('text-right-container');
+            const indicators = document.getElementById('indicators');
+
+            portfolioData.forEach((project, index) => {
+                // 1. Image Layer
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'absolute inset-0 w-full h-full';
+                imgDiv.style.transform = `translateY(${index * 100}%)`; 
+                imgDiv.style.zIndex = index + 1;
+                imgDiv.innerHTML = `<img src="${project.image}" class="w-full h-full object-cover" alt="${project.title}">`;
+                imageStrip.appendChild(imgDiv);
+
+                // 2. Left Text (Project ID)
+                const leftDiv = document.createElement('div');
+                leftDiv.className = `h-[500px] flex items-center transition-opacity duration-500 ${index === 0 ? 'opacity-100' : 'opacity-20'}`;
+                leftDiv.id = `left-text-${index}`;
+                leftDiv.innerHTML = `<span class="text-neon font-mono text-xl tracking-widest">Exhibit 00${index + 1}</span>`;
+                leftContainer.appendChild(leftDiv);
+
+                // 3. Right Text (Title)
+                const rightDiv = document.createElement('div');
+                rightDiv.className = `h-[500px] flex flex-col justify-center items-end transition-opacity duration-500 ${index === 0 ? 'opacity-100' : 'opacity-20'}`;
+                rightDiv.id = `right-text-${index}`;
+                rightDiv.innerHTML = `
+                    <h2 class="text-3xl font-bold leading-tight mb-2">${project.title}</h2>
+                    <p class="text-gray-500 font-mono text-sm">[ ${project.subtitle} ]</p>
+                `;
+                rightContainer.appendChild(rightDiv);
+
+                // 4. Indicator
+                const dot = document.createElement('div');
+                dot.className = `w-2 h-2 rounded-full transition-colors duration-300 ${index === 0 ? 'bg-neon' : 'bg-gray-700'}`;
+                dot.id = `indicator-${index}`;
+                indicators.appendChild(dot);
+            });
+        }
+
+        // --- 3. Scroll Logic (Sticky & Fill Up) ---
+        let currentActiveIndex = 0;
+
+        function handleScroll() {
+            const track = document.getElementById('gallery-track');
+            const sticky = document.getElementById('gallery-sticky');
+            const imageStrip = document.getElementById('image-strip');
+            
+            // Dimensions
+            const trackRect = track.getBoundingClientRect();
+            const trackHeight = track.offsetHeight; // Total height of track (e.g. 400vh)
+            const viewportHeight = window.innerHeight;
+            
+            // Calculate progress (0 to 1) within the track
+            // Start calculation when track top hits 0
+            let rawProgress = -trackRect.top / (trackHeight - viewportHeight);
+            let progress = Math.max(0, Math.min(1, rawProgress));
+
+            // Show/Hide Sticky Container
+            if (rawProgress > -0.1 && rawProgress < 1.1) {
+                sticky.style.opacity = '1';
+            } else {
+                sticky.style.opacity = '0';
+            }
+
+            // Calculate movement
+            // Range: 0 -> (totalProjects - 1)
+            const totalProjects = portfolioData.length;
+            const scrollValue = progress * (totalProjects - 0.5); // 0.5 buffer at end
+            
+            // Determine active index
+            const activeIndex = Math.min(Math.floor(scrollValue + 0.3), totalProjects - 1);
+
+            // Animate Images: Slide up effect ("Fill Up")
+            Array.from(imageStrip.children).forEach((imgDiv, i) => {
+                if (i === 0) {
+                    imgDiv.style.transform = `translateY(0)`; // Base image always there
+                } else {
+                    let offset = Math.max(0, Math.min(1, i - scrollValue)); 
+                    imgDiv.style.transform = `translateY(${offset * 100}%)`;
+                }
+            });
+
+            // Update Active State (Text & Background)
+            if (activeIndex !== currentActiveIndex) {
+                updateActiveState(activeIndex);
+                currentActiveIndex = activeIndex;
+            }
+        }
+
+        function updateActiveState(index) {
+            // Update Text Opacity
+            portfolioData.forEach((_, i) => {
+                const left = document.getElementById(`left-text-${i}`);
+                const right = document.getElementById(`right-text-${i}`);
+                const dot = document.getElementById(`indicator-${i}`);
+                
+                const isActive = i === index;
+                const opacity = isActive ? '1' : '0.1'; // dim non-active
+                
+                left.style.opacity = opacity;
+                right.style.opacity = opacity;
+                
+                // Active Dot
+                dot.className = `w-2 h-2 rounded-full transition-colors duration-300 ${isActive ? 'bg-neon' : 'bg-gray-700'}`;
+            });
+
+            // Update Background - Now uses the Content Image directly
+            const bgLayer = document.getElementById('bg-image-layer');
+            bgLayer.style.opacity = 0; // brief fade out for smoothness
+            setTimeout(() => {
+                bgLayer.style.backgroundImage = `url('${portfolioData[index].image}')`;
+                bgLayer.style.opacity = 0.3; // Restore opacity (match CSS)
+            }, 300);
+        }
+
+        // --- 4. Modal Logic (Integration) ---
+        function openCurrentModal() {
+            openModal(portfolioData[currentActiveIndex].id);
+        }
+
+        // --- 5. Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Particles
+            resizeCanvas();
+            animateParticles();
+            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('mousemove', (e) => {
+                mouse.x = e.x;
+                mouse.y = e.y;
+            });
+
+            // Typewriter
+            startTypewriter();
+
+            // Gallery
+            initGallery();
+            window.addEventListener('scroll', handleScroll);
+            
+            // Set initial background to first project image
+            if(portfolioData.length > 0) {
+                const bgLayer = document.getElementById('bg-image-layer');
+                bgLayer.style.backgroundImage = `url('${portfolioData[0].image}')`;
+            }
+            
+            // Trigger initial scroll calc
+            handleScroll();
+        });
+
+        // --- Helper Functions ---
+        function startTypewriter() {
+            const typewriterElement = document.getElementById('typewriter');
+            const introSub = document.getElementById('intro-sub');
+            const textToType = "Exploring the Boundary\nbetween Code and Aesthetics.";
+            let charIndex = 0;
+
+            function type() {
+                if (charIndex < textToType.length) {
+                    const char = textToType.charAt(charIndex);
+                    typewriterElement.innerHTML += char === '\n' ? '<br/>' : char;
+                    charIndex++;
+                    setTimeout(type, 50);
+                } else {
+                    introSub.style.opacity = '1';
+                }
+            }
+            setTimeout(type, 500);
+        }
+
+        function scrollToGallery() {
+            document.getElementById('gallery-track').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Neural Network & Particles
+        const canvas = document.getElementById('neural-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const mouse = { x: null, y: null, radius: 150 };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 30) + 1;
+            }
+            update() {
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius) {
+                        const forceDirectionX = dx / distance;
+                        const forceDirectionY = dy / distance;
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        const directionX = forceDirectionX * force * this.density;
+                        const directionY = forceDirectionY * force * this.density;
+                        this.x -= directionX;
+                        this.y -= directionY;
+                    } else {
+                        if (this.x !== this.baseX) { this.x -= (this.x - this.baseX)/20; this.baseX += this.vx; }
+                        if (this.y !== this.baseY) { this.y -= (this.y - this.baseY)/20; this.baseY += this.vy; }
+                    }
+                }
+                this.x += this.vx; this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
+                if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
+            }
+            draw() {
+                ctx.fillStyle = '#00ffaa';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const numberOfParticles = (canvas.width * canvas.height) / 15000;
+            for (let i = 0; i < numberOfParticles; i++) particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                for (let j = i; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(0, 255, 170, ${1 - distance/100})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        // Modal Logic
+        function openModal(id) {
+            const project = portfolioData.find(p => p.id === id);
+            if (!project) return;
+            document.getElementById('modal-title').textContent = project.title;
+            document.getElementById('modal-desc').textContent = project.description;
+            document.getElementById('modal-img').src = project.image;
+            document.getElementById('modal-tools').innerHTML = project.tools.map(tool => `<span class="px-3 py-1 bg-white/10 rounded-full text-xs text-white border border-white/20">${tool}</span>`).join('');
+            document.getElementById('modal-prompts').innerHTML = project.prompts.map(prompt => `<div class="mb-2"><span class="text-gray-500 select-none">$ </span>${prompt}</div>`).join('');
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modal-content');
+            modal.classList.remove('hidden'); void modal.offsetWidth; 
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95'); modalContent.classList.add('scale-100');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modal-content');
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100'); modalContent.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
+        }
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+        document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
+
+    </script>
+</body>
+</html>
